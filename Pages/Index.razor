@@ -1,0 +1,154 @@
+﻿@page "/"
+@using Syncfusion.Blazor.Diagram.SymbolPalette
+@using shapes = Syncfusion.Blazor.Diagram.NodeShapes
+
+<style>
+    .diagram-container
+    {
+        width: 900px;
+        margin-left: 300px;
+    }
+    .palette-container
+    {
+        width: 300px;
+        margin-top: -700px;
+        height: 700px;
+    }
+   
+</style>
+
+<div class="diagram-container">
+<SfDiagramComponent @ref="@Diagram" Height="700px" Width="900px"
+                                    Nodes="@nodes">
+</SfDiagramComponent>
+
+</div>
+
+<div class="palette-container">
+<SfSymbolPaletteComponent @ref="@palette" Height="700px" Width="300px"
+                          Palettes="@palettes"
+                          SymbolHeight="90"
+                          SymbolWidth="90"
+                          GetSymbolInfo="GetSymbolInfo"
+>
+</SfSymbolPaletteComponent>
+</div>
+
+@code{
+    public DiagramObjectCollection<Palette> palettes;
+    public DiagramObjectCollection<NodeBase> basicShapes { get; set; }
+    public DiagramObjectCollection<NodeBase> flowShapes { get; set; }
+    public DiagramObjectCollection<NodeBase> connectors { get; set; }
+    public SfDiagramComponent Diagram;
+    SymbolInfo SymbolInfo = new SymbolInfo();
+    SfSymbolPaletteComponent palette;
+    private DiagramObjectCollection<Node> nodes = new DiagramObjectCollection<Node>();
+    protected override void OnInitialized()
+    {
+        InitializePalette();
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        palette.Targets = new DiagramObjectCollection<SfDiagramComponent>
+        {
+            Diagram
+        };
+    }
+
+    private void InitializePalette()
+    {
+        palettes = new DiagramObjectCollection<Palette>();
+        basicShapes = new DiagramObjectCollection<NodeBase>
+        {
+            CreateBasicNode("Rectangle", NodeBasicShapes.Rectangle),
+            CreateBasicNode("Ellipse",NodeBasicShapes.Ellipse),
+            CreateBasicNode("Diamond",NodeBasicShapes.Diamond),
+            CreateBasicNode("Triangle",NodeBasicShapes.Triangle),
+            CreateBasicNode("Parallelogram",NodeBasicShapes.Parallelogram),
+        };
+        flowShapes = new DiagramObjectCollection<NodeBase>
+        {
+            CreateFlowNode("Terminator", NodeFlowShapes.Terminator),
+            CreateFlowNode("Process",NodeFlowShapes.Process),
+            CreateFlowNode("Display",NodeFlowShapes.Display),
+        };
+        connectors = new DiagramObjectCollection<NodeBase>
+        {
+            CreateConnector("link1",ConnectorSegmentType.Orthogonal,DecoratorShape.None),
+            CreateConnector("link2",ConnectorSegmentType.Straight,DecoratorShape.Arrow)
+        };
+
+        palettes.Add(new Palette()
+            {
+                ID = "BasicShape",
+                Title = "Basic Shapes",
+                Symbols = basicShapes
+            });
+        palettes.Add(new Palette()
+
+            {
+                ID = "FlowShape",
+                Title = "Flow Shapes",
+                Symbols = flowShapes
+            });
+        palettes.Add(new Palette()
+            {
+                ID = "Connector",
+                Title = "Connectors",
+                Symbols = connectors
+
+
+            }
+        );
+    }
+
+    private Node CreateBasicNode(string id, NodeBasicShapes type)
+    {
+        Node new_node = new Node()
+            {
+                ID = id,
+                Shape = new BasicShape()
+                {
+                    Type = shapes.Basic,
+                    Shape = type
+                }
+            };
+        return new_node;
+    }
+    private Node CreateFlowNode(string id, NodeFlowShapes type)
+    {
+        Node new_node = new Node()
+            {
+                ID = id,
+                Shape = new FlowShape()
+                {
+                    Type = shapes.Flow,
+                    Shape = type
+                }
+            };
+        return new_node;
+    }
+    private Connector CreateConnector(string id, ConnectorSegmentType type, DecoratorShape shape)
+    {
+        Connector connector = new Connector
+            {
+                ID = id,
+                Type = type,
+                TargetDecorator = new DecoratorSettings()
+                {
+                    Shape = shape
+                },
+                SourcePoint = new DiagramPoint { X = 0, Y = 0 },
+                TargetPoint = new DiagramPoint { X = 40, Y = 40 }
+            };
+        return connector;
+    }
+
+    private SymbolInfo GetSymbolInfo(IDiagramObject symbol)
+    {
+        string description = symbol is Node ? (symbol as Node).ID : (symbol as Connector).ID;
+        SymbolInfo.Description = new SymbolDescription { Text = description };
+        return SymbolInfo;
+    }
+
+}
